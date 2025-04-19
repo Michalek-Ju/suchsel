@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suchsel J.Michalek</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 1rem;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    table {
+      border-collapse: collapse;
+      margin-bottom: 1rem;
+    }
+    td {
+      border: 1px solid #000;
+      width: 2rem;
+      height: 2rem;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 1.2rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+    }
+    td.hovered {
+      background-color: #b3d9ff;
+    }
+    td.selected {
+      background-color: #b3d9ff;
+    }
+    td.found {
+      background-color: #90ee90;
+      color: #000;
+      font-weight: bold;
+    }
+    #popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border: 2px solid #4CAF50;
+      padding: 1.5rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+      display: none;
+      text-align: center;
+    }
+    #popup p {
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+      color: green;
+    }
+    #popup button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    #controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      max-width: 200px;
+    }
+    #wordlist {
+      font-size: 1rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 1.6;
+    }
+    button {
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <table id="grid"></table>
+  </div>
+
+  <div id="controls">
+    <button onclick="history.back()">🔙 Zurück</button>
+    <div id="wordlist">Finde:<br>LUFTBALLON<br>KUCHEN<br>FEST<br>50<br>MUSIK<br>ROLLI<br>GRILL<br>POMMES</div>
+  </div>
+
+  <div id="popup">
+    <p id="popupText"></p>
+    <button onclick="document.getElementById('popup').style.display='none'">Schließen</button>
+  </div>
+
+  <script>
+    const matrix = [
+      "ELYTOLBURLNBFGV",
+      "JVMKUCHENMUWMCL",
+      "UMPKZPXPBOALBOU",
+      "KPCHGBDDIAKSZBZ",
+      "XOZZAYKOMGGUULQ",
+      "DOVUYMICUXFZCUY",
+      "ROLLIPYLSGRTQFZ",
+      "PXXQFPJIIREKYTU",
+      "GOJMNOFZKCXQLB5",
+      "MFVQPMKJEHJMVA0",
+      "KEAOQMLEBGKQYLC",
+      "OSJWLELOCKBPJLO",
+      "JTPWGSKWCFPBLOB",
+      "FTZVLHGRILLMUNI",
+      "EGRQBWVCJJXOZWU"
+    ];
+
+    const hitMatrix = [
+      "000000000000000",
+      "000111111000000",
+      "000000000000000",
+      "000000000000000",
+      "000000001000010",
+      "000000001000010",
+      "111110001000010",
+      "000001001000010",
+      "000001001000011",
+      "010001000000011",
+      "010001000000010",
+      "010001000000010",
+      "010001000000010",
+      "000000111110010",
+      "000000000000000"
+    ];
+
+    const grid = document.getElementById("grid");
+    const popup = document.getElementById("popup");
+    const popupText = document.getElementById("popupText");
+    const foundPositions = new Set();
+    let totalHits = 0;
+    let wrongClicks = 0;
+
+    hitMatrix.forEach(row => {
+      totalHits += [...row].filter(c => c === "1").length;
+    });
+
+    function renderGrid() {
+      matrix.forEach((row, rowIndex) => {
+        const tr = document.createElement("tr");
+        [...row].forEach((char, colIndex) => {
+          const td = document.createElement("td");
+          td.textContent = char;
+          td.dataset.row = rowIndex;
+          td.dataset.col = colIndex;
+
+          td.addEventListener("mouseover", () => {
+            if (!td.classList.contains("found")) td.classList.add("hovered");
+          });
+          td.addEventListener("mouseout", () => {
+            td.classList.remove("hovered");
+          });
+
+          td.addEventListener("click", () => {
+            const isHit = hitMatrix[rowIndex][colIndex] === "1";
+            const key = `${rowIndex},${colIndex}`;
+
+            if (isHit && !foundPositions.has(key)) {
+              td.classList.add("found");
+              foundPositions.add(key);
+              if (foundPositions.size === totalHits) {
+                popupText.textContent = `🎉 Super: Du hast alle Wörter mit ${wrongClicks} zusätzlichen Versuchen gefunden!`;
+                popup.style.display = 'block';
+              }
+            } else if (!isHit) {
+              td.classList.add("selected");
+              wrongClicks++;
+              setTimeout(() => td.classList.remove("selected"), 1000);
+            }
+          });
+
+          tr.appendChild(td);
+        });
+        grid.appendChild(tr);
+      });
+    }
+
+    renderGrid();
+  </script>
+</body>
+</html>
